@@ -50,7 +50,7 @@ bool Board::endTurn(const bool isLocal){
             cout<<"White wins!"<<endl;
         else
             cout<<"Black wins!"<<endl;
-            return true;
+        return true;
     } else if(isCheck)
         cout<<"Check!"<<endl;
     else if(isMate){
