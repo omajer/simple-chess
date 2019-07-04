@@ -16,6 +16,7 @@
 #include"Queen.h"
 #include"Bishop.h"
 #include"Board.h"
+#include"Input.h"
 using namespace std;
 
 class Piece;
@@ -189,12 +190,13 @@ int Board::receiveData(int& state, const int currSock, const int listenSock, con
 void Board::startGame(int& state, string& loadedGame, bool isLocal){
     char tmpChar;
     string tmpStr;
-    while(1){
+    while(true){
         cout<<"Would you like to load a previous game or start a new game? (l/n)"<<endl;
-        do{
+        tmpChar = charInput("ln");
+        /*do{
             cin.clear();
             cin >> tmpChar;
-        } while (!cin.good() || (tmpChar != 'l' && tmpChar != 'n'));
+        } while (!cin.good() || (tmpChar != 'l' && tmpChar != 'n'));*/
         if(tmpChar == 'n')
             return;
         else {                              //handles loading a saved game
@@ -516,8 +518,8 @@ void Board::getInput(int& state, char& promote, string& loadedGame, char& fromy,
 }
 
 bool Board::check(const char playerColor) const{
-    int i, x;
-    char j, y;
+    int i, x=0;
+    char j, y='\0';
     for(j = 'a'; j <= 'h'; j++){
         for(i = 1; i <= 8; i++){
             if(at(j,i) != NULL && at(j,i)->getType() == 'k'  && at(j,i)->getColor() == playerColor) {
@@ -745,11 +747,14 @@ Board::Board() {
     board[0][5] = new Bishop('b');
     board[0][3] = new Queen('b');
     board[0][4] = new King('b');
-    for(int i = 0; i < 8; i++)
+    for(int i = 0; i < 8; i++){
         board[1][i] = new Pawn('b');
-    for(int i = 2; i < 6; i++)
-            for(int j = 0; j < 8; j++)
-                board[i][j] = NULL;
+    }
+    for(int i = 2; i < 6; i++){
+        for(int j = 0; j < 8; j++){
+            board[i][j] = NULL;
+        }
+    }
     board[7][0] = new Rook('w');
     board[7][7] = new Rook('w');
     board[7][1] = new Knight('w');
@@ -758,6 +763,7 @@ Board::Board() {
     board[7][5] = new Bishop('w');
     board[7][3] = new Queen('w');
     board[7][4] = new King('w');
-    for(int i = 0; i < 8; i++)
+    for(int i = 0; i < 8; i++){
         board[6][i] = new Pawn('w');
+    }
 }

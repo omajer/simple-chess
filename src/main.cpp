@@ -20,7 +20,9 @@
 #include"Bishop.h"
 #include"Board.h"
 #include"Server.h"
+#include"Input.h"
 using namespace std;
+
 
 int main() {
     string tmpStr, address, service;
@@ -29,22 +31,15 @@ int main() {
     bool isLocal = true, isSrv = false, isCli = false;
     memset(buffer, 0, 100);
     cout<<"Welcome to chess!"<<endl<<"Would you like to play over the network? (y/n)"<<endl;
-    do{
-        cin.clear();
-        cin >> tmpChar;
-    } while (!cin.good() || (tmpChar != 'y' && tmpChar != 'n'));
-
+    tmpChar = charInput("yn");
     if(tmpChar == 'y'){
         isLocal = false;
         cout<<"Run as server or client? (s/c)"<<endl;
-        do{
-            cin.clear();
-            cin >> tmpChar;
-        } while (!cin.good() || (tmpChar != 's' && tmpChar != 'c'));
+        tmpChar = charInput("sc");
         cout<<"Enter address"<<endl;
         do{
             cin.clear();
-            cin >> address;
+            getline(cin, address);
         } while (!cin.good());
         cout<<"Enter port number"<<endl;
         if(tmpChar == 'c'){
@@ -77,9 +72,12 @@ int main() {
             clientSock = accept ( listenSock, &addr, &addrLen );
         }
     }
-    cout<<endl<<"Instructions:"<<endl<<"To move a piece, simply type the name of the origin square"<<endl<<"and the destination square, e.g.:"<<endl<<"'a2 a4'"<<endl;
+
+    cout<<endl<<"Instructions:"<<endl<<"To move a piece, simply type the name of the origin square"<<endl;
+    cout<<"and the destination square, e.g.:"<<endl<<"'a2 a4'"<<endl;
     cout<<"To resign, type 'r'. To save the game, type 's'. To quit the game, type 'q'"<<endl<<endl;
-    while(1){
+
+    while(true){
         Board b;
         char promote = 0;
         string loadedGame;
@@ -96,7 +94,7 @@ int main() {
             b.startGame(state, loadedGame, isLocal);
             cout<<b.print();
         }
-        while(1){
+        while(true){
             if(!isLocal && (isCli || (isSrv && !firstTime))){
                 int c = b.receiveData(state, currSock, listenSock, isLocal, isSrv, loadedGame);
                 if(c == 2)
