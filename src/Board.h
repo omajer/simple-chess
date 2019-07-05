@@ -127,7 +127,7 @@ public:
     * @param playerColor color of the player who moved the piece
     * @return true if the move was valid and successfully performed, false otherwise
     */
-    bool move (const char fromy, const int fromx, const char toy, const int tox, const char playerColor);
+    bool movePiece (const char fromy, const int fromx, const char toy, const int tox, const char playerColor);
     /** Returns the graphical representation of the chessboard
     * @return a string containing a representation of the board
     */
