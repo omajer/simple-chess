@@ -21,12 +21,12 @@ using namespace std;
 
 class Piece;
 
-string Board::load (const char * filename){
+string Board::load (string filename){
     ifstream ifs (filename, ifstream::in);
     if(!ifs.is_open())
         return "";
     string state;
-    ifs >> state;
+    getline(ifs, state);
     if(state.length() != 73)
         return "";
     deleteBoard();
@@ -34,10 +34,12 @@ string Board::load (const char * filename){
     return state;
 }
 void Board::deleteBoard() {
-
-     for(int i = 0; i < 64; i++)
-        if(board[i/8][i%8] != NULL)
+    for(int i = 0; i < 64; i++){
+        if(board[i/8][i%8] != nullptr){
             delete board[i/8][i%8];
+            board[i/8][i%8] = nullptr;
+        }
+    }
 }
 Board::~Board(){
     deleteBoard();
@@ -193,20 +195,24 @@ void Board::startGame(int& state, string& loadedGame, bool isLocal){
     while(true){
         cout<<"Would you like to load a previous game or start a new game? (l/n)"<<endl;
         tmpChar = charInput("ln");
-        /*do{
-            cin.clear();
-            cin >> tmpChar;
-        } while (!cin.good() || (tmpChar != 'l' && tmpChar != 'n'));*/
-        if(tmpChar == 'n')
+        if(tmpChar == 'n'){
             return;
+        }
         else {                              //handles loading a saved game
             cout<<"Enter filename"<<endl;
             do{
-            cin.clear();
-                cin >> tmpStr;
+                cin.clear();
+                getline(cin, tmpStr);
             } while (!cin.good());
-            loadedGame = load(&tmpStr[0]);
-            if(loadedGame != ""){
+            try{
+                loadedGame = load(tmpStr);
+            } catch (const char c){
+                deleteBoard();
+                cout<<"The savefile is corrupted. Reading failed."<<endl;
+                newBoard();
+                continue;
+            }
+            if(!loadedGame.empty()){
                 if(loadedGame[72] == 'b'){
                     cout<<"Black to move"<<endl;
                     if(isLocal)
@@ -717,6 +723,16 @@ void Board::makeBoard(const string state){
         case 'K':
             board[i/8][i%8] = new King('b');
             break;
+        default:
+            throw 'c';
+        }
+    }
+    /*if((state[64] < 'a' || state[64] > 'h' || state[65] < '1' || state[65] > '8') && (state[64] != 0 || state[65] != 0)){
+        throw 'c';
+    }*/
+    for(int i = 66; i < 72; i++){
+        if(state[i] != '0' && state[i] != '1'){
+            throw 'c';
         }
     }
     epSquare = make_pair(state[64],(int)state[65]-48);
@@ -734,7 +750,7 @@ void Board::makeBoard(const string state){
         board[7][7]->setMoved();
 }
 
-Board::Board() {
+void Board::newBoard(){
     epSquare = make_pair(0,0);
     color = 'w';
     isCheck = false;
@@ -766,4 +782,8 @@ Board::Board() {
     for(int i = 0; i < 8; i++){
         board[6][i] = new Pawn('w');
     }
+}
+
+Board::Board() {
+    newBoard();
 }

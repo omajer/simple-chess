@@ -17,6 +17,9 @@ class Board {
     * Used by the destructor and when loading a file.
     */
     void deleteBoard();
+    /** Sets up a new chessboard in the initial configuration.
+    */
+    void newBoard();
     /** Creates a new chessboard. Used for loading from a file.
     * @param state Contains the ditribution of the pieces for the new chessboard
     */
@@ -30,7 +33,7 @@ class Board {
     * @param filename the name of the file from which the game should be loaded
     * @return the content of the file from which the game was loaded
     */
-    string load (const char * filename);
+    string load (string filename);
     /** Saves the current state of the chessboard to a string. Used when saving to a file.
     * @return a string in which the current state of the chessboard is encoded
     */

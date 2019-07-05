@@ -73,7 +73,7 @@ int main() {
         }
     }
 
-    cout<<endl<<"Instructions:"<<endl<<"To move a piece, simply type the name of the origin square"<<endl;
+    cout<<endl<<"Instructions:"<<endl<<"To move a piece, simply type the name of the origin square";
     cout<<"and the destination square, e.g.:"<<endl<<"'a2 a4'"<<endl;
     cout<<"To resign, type 'r'. To save the game, type 's'. To quit the game, type 'q'"<<endl<<endl;
 

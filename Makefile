@@ -1,4 +1,4 @@
-CFLAGS = -Wall -Wunused-variable -Wextra -Wshadow -pedantic -Wno-long-long -O2 -ggdb
+CFLAGS = -Wall -Wno-maybe-uninitialized -Wunused-variable -Wextra -Wshadow -pedantic -Wno-long-long -O2 -ggdb
 
 all: compile doc
 
