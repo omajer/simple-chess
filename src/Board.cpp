@@ -35,6 +35,7 @@ string Board::load (string filename){
     makeBoard(state);
     return state;
 }
+
 void Board::deleteBoard() {
     for(int i = 0; i < 64; i++){
         if(board[i/8][i%8] != nullptr){
@@ -43,29 +44,43 @@ void Board::deleteBoard() {
         }
     }
 }
+
 Board::~Board(){
     deleteBoard();
 }
+
+string Board::getColorName(){
+    if(color == 'w'){
+        return "White";
+    }
+    else {
+        return "Black";
+    }
+}
+
 bool Board::endTurn(const bool isLocal){
     if(isCheck && isMate){
         cout<<"Checkmate!"<<endl;
-        if(!isLocal)
+        if(!isLocal){
             cout<<"You win!"<<endl;
-        else if(color == 'w')
-            cout<<"White wins!"<<endl;
-        else
-            cout<<"Black wins!"<<endl;
+        }
+        else {
+            cout<<getColorName()<<" wins!"<<endl;
+        }
         return true;
-    } else if(isCheck)
+    } else if(isCheck){
         cout<<"Check!"<<endl;
+    }
     else if(isMate){
         cout<<"Stalemate"<<endl<<"The game is drawn"<<endl;
         return true;
     }
-    if(isLocal)
+    if(isLocal){
         color = other(color);
+    }
     return false;
 }
+
 string Board::saveToString () const {
     string state = "";
     for(int i = 0; i < 64; i++){
@@ -76,30 +91,17 @@ string Board::saveToString () const {
     }
     state += epSquare.first;
     state += (char)epSquare.second+48;
-    if(board[0][0] != NULL && board[0][0]->getMoved())
-        state += '1';
-    else
-        state += '0';
-    if(board[0][4] != NULL && board[0][4]->getMoved())
-        state += '1';
-    else
-        state += '0';
-    if(board[0][7] != NULL && board[0][7]->getMoved())
-        state += '1';
-    else
-        state += '0';
-    if(board[7][0] != NULL && board[7][0]->getMoved())
-        state += '1';
-    else
-        state += '0';
-    if(board[7][4] != NULL && board[7][4]->getMoved())
-        state += '1';
-    else
-        state += '0';
-    if(board[7][7] != NULL && board[7][7]->getMoved())
-        state += '1';
-    else
-        state += '0';
+    int tmpX[] = {0, 7}, tmpY[] = {0, 4, 7};
+    for(int i = 0; i<2; i++){                           //save the "moved" status of rooks and kings
+        for(int j = 0; j<3; j++){
+            if(board[tmpX[i]][tmpY[j]] != NULL && board[tmpX[i]][tmpY[j]]->getMoved()){
+                state += '1';
+            }
+            else {
+                state += '0';
+            }
+        }
+    }
     state += color;
     return state;
 
@@ -113,6 +115,7 @@ bool Board::save (const char * filename) const{
     ofs.close();
     return true;
 }
+
 void Board::sendData(const int& state, const string& loadedGame, const char fromy, const int fromx, const char toy,
                      const int tox, char& promote, const int currSock) const{
     char buffer[100];
@@ -144,6 +147,7 @@ void Board::sendData(const int& state, const string& loadedGame, const char from
     }
     return;
 }
+
 int Board::receiveData(int& state, const int currSock, const int listenSock, const bool isLocal, const bool isSrv,
                        string& loadedGame){
     char buffer[100];
@@ -173,7 +177,7 @@ int Board::receiveData(int& state, const int currSock, const int listenSock, con
         deleteBoard();
         makeBoard(loadedGame);
         cout<<print();
-    }else {                                         //handles moves
+    } else {                                         //handles moves
         movePiece(buffer[0],(int)buffer[1],buffer[2],(int)buffer[3],other(color));
         if(buffer[5]){
             promotion(buffer[2], (int)buffer[3], buffer[5], other(color));
@@ -198,7 +202,11 @@ void Board::startGame(int& state, string& loadedGame, bool isLocal){
     string tmpStr;
     while(true){
         cout<<"Would you like to load a previous game or start a new game? (l/n)"<<endl;
-        tmpChar = charInput("ln");
+        tmpChar = charInput("lnq");
+        if(tmpChar == 'q'){
+            state = QUIT;
+            return;
+        }
         if(tmpChar == 'n'){
             return;
         }
@@ -254,8 +262,7 @@ bool Board::mate(const char playerColor){
                         mate = false;
                     board[8-j][i-97] = at(validMoves[k].first, validMoves[k].second);
                     board[8-validMoves[k].second][validMoves[k].first-97] = tmp;
-                    if(!mate)
-                        return false;
+                    return mate;
 
                 }
 
@@ -263,7 +270,7 @@ bool Board::mate(const char playerColor){
         }
     }
     if(epSquare.first){                                            //this section checks if the player can perform en passant capture
-        if(playerColor == 'w' && epSquare.second == 6){
+        if(playerColor == 'w' && epSquare.second == 6){             //TODO: combine branches for both colors
             if(at(epSquare.first+1,5) != NULL && at(epSquare.first+1,5)->print() == 'p'){
                 board[2][epSquare.first-97] = at(epSquare.first+1,5);
                 board[3][epSquare.first-96] = NULL;
@@ -286,8 +293,7 @@ bool Board::mate(const char playerColor){
                 board[2][epSquare.first-97] = NULL;
                 board[3][epSquare.first-97] = tmp;
             }
-            if(!mate)
-                return false;
+            return mate;
         }
         else if(playerColor == 'b' && epSquare.second == 3){
             if(at(epSquare.first+1,4) != NULL && at(epSquare.first+1,4)->print() == 'P'){
@@ -312,21 +318,19 @@ bool Board::mate(const char playerColor){
                 board[5][epSquare.first-97] = NULL;
                 board[4][epSquare.first-97] = tmp;
             }
-            if(!mate)
-                return false;
+            return mate;
         }
     }
     return true;
 }
 
-
 bool Board::movePiece (const char fromy, const int fromx, const char toy, const int tox, const char playerColor){
     if(at(fromy, fromx) == NULL || at(fromy, fromx)->getColor() != playerColor || toy < 97 || toy > 104 || tox < 1 || tox > 8 || (at(toy, tox) != NULL && at(toy, tox)->getColor() == playerColor))
         return false;
     if(fromy == 'e' &&((fromx == 1 && tox == 1) || (fromx == 8 && tox == 8)) && (toy == 'c' || toy == 'g') && at(fromy, fromx)->getType() == 'k'){          //this branch handles castling
-        if(at(fromy, fromx)->getColor() == playerColor && !at(fromy, fromx)->getMoved() && !check(playerColor)) {
+        if(at(fromy, fromx)->getColor() == playerColor && !at(fromy, fromx)->getMoved() && !check(playerColor)) {                                           //the getMoved() method also checks if the piece is a rook or a king
             if(toy == 'g' && at('h',fromx) != NULL && at('h',fromx)->getColor() == playerColor && !at('h',fromx)->getMoved() &&  at('f',fromx) == NULL && at('g',fromx) == NULL ){
-                board[8-fromx][5] = board[8-fromx][4];
+                board[8-fromx][5] = board[8-fromx][4];                  //kingside castling
                 board[8-fromx][4] = NULL;
                 if(check(playerColor)){
                     board[8-fromx][4] = board[8-fromx][5];
@@ -344,7 +348,7 @@ bool Board::movePiece (const char fromy, const int fromx, const char toy, const 
                     return false;
                 }
             } else if(toy == 'c' && at('a',fromx) != NULL && at('a',fromx)->getColor() == playerColor && !at('a',fromx)->getMoved() && at('b',fromx) == NULL && at('c',fromx)==NULL&& at('d',fromx)==NULL){
-                board[8-fromx][3] = board[8-fromx][4];
+                board[8-fromx][3] = board[8-fromx][4];                  //queenside castling
                 board[8-fromx][4] = NULL;
                 if(check(playerColor)){
                     board[8-fromx][4] = board[8-fromx][3];
@@ -369,8 +373,8 @@ bool Board::movePiece (const char fromy, const int fromx, const char toy, const 
         else
             return false;
     }
-    else if(   epSquare.first == toy && epSquare.second == tox && (toy == fromy - 1 || toy == fromy + 1) &&  (( at(fromy, fromx)->print() == 'P' && fromx == 4 && tox == 3 ) ||
-        ( at(fromy, fromx)->print() == 'p' && fromx == 5 && tox == 6 ) ) ){                                                     //this branch handles en passant capture
+    else if(epSquare.first == toy && epSquare.second == tox && (toy == fromy - 1 || toy == fromy + 1) &&  (( at(fromy, fromx)->print() == 'P' && fromx == 4 && tox == 3) ||
+        (at(fromy, fromx)->print() == 'p' && fromx == 5 && tox == 6))){                                                     //this branch handles en passant capture
         board[8-tox][toy-97] = at(fromy, fromx);
         board[8-fromx][fromy-97]  = NULL;
         Piece * tmp = board[8-fromx][toy-97];
@@ -400,7 +404,7 @@ bool Board::movePiece (const char fromy, const int fromx, const char toy, const 
         at(toy, tox)->setMoved();
         delete tmp;
     }
-    if( at(toy,tox)->getType() == 'p'  && (fromx == 2 || fromx == 7) && (tox == fromx - 2 || tox == fromx + 2 ))
+    if( at(toy,tox)->getType() == 'p'  && (fromx == 2 || fromx == 7) && (tox == fromx - 2 || tox == fromx + 2 ))    //if a pawn has moved two places, en passant capture will be possible in the next turn
         epSquare = make_pair(toy, (tox + fromx) / 2);
     else
         epSquare = make_pair(0,0);
@@ -419,7 +423,9 @@ string Board::print() const{
     stringstream str;
     string result = "";
     char c;
-    str<<"   _______________________________________________ "<<'\n'<<"  |█████|     |█████|     |█████|     |█████|     |"<<'\n';
+    str<<"     a     b     c     d     e     f     g     h"<<'\n';
+    str<<"   _______________________________________________ "<<'\n';
+    str<<"  |█████|     |█████|     |█████|     |█████|     |"<<'\n';
     for(int i = 0; i < 8; i++){
         str<<8 - i;
         if(i%2)
@@ -471,10 +477,12 @@ Piece * Board::at (const char y, const int x) const {
         return NULL;
     return board[8 - x][y - 97];
 }
+
 void Board::getInput(int& state, char& promote, string& loadedGame, char& fromy, int& fromx, char& toy, int& tox, const bool firstTime){
     string tmpStr;
     while(state != LOAD){
         string input;
+        cin.clear();
         getline(cin, input);
         if(!cin.good() || input.length() < 1){
             cin.clear();
@@ -515,8 +523,8 @@ void Board::getInput(int& state, char& promote, string& loadedGame, char& fromy,
         } else if(input[0] == 's'){               //handles saving the game
             cout<<"Enter filename"<<endl;
             do{
-            cin.clear();
-                cin >> tmpStr;
+                cin.clear();
+                getline(cin, tmpStr);
             } while (!cin.good());
             if(!save(&tmpStr[0]))
                 cout<<"Cannot save game"<<endl;

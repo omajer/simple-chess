@@ -28,6 +28,7 @@ int main() {
     string tmpStr, address, service;
     char tmpChar, fromy, toy, buffer[100];
     int port, fromx, tox=1, clientSock = 0, cliSock = 0, listenSock;
+    static const int MOVE = 1, QUIT = 2, MOVE_LOAD = 4, RESIGN = 5;
     bool isLocal = true, isSrv = false, isCli = false;
     memset(buffer, 0, 100);
     cout<<"Welcome to chess!"<<endl<<"Would you like to play over the network? (y/n)"<<endl;
@@ -82,7 +83,6 @@ int main() {
         char promote = 0;
         string loadedGame;
         int currSock, state = 0;
-        static const int MOVE = 1, QUIT = 2, MOVE_LOAD = 4, RESIGN = 5;
         bool firstTime = true;
         if(isSrv)
             currSock = clientSock;
@@ -92,6 +92,10 @@ int main() {
         }
         if(isLocal || isSrv) {
             b.startGame(state, loadedGame, isLocal);
+            if(state == QUIT){
+                quit(isLocal, isSrv, currSock, listenSock);
+                return 0;
+            }
             cout<<b.print();
         }
         while(true){
@@ -103,29 +107,24 @@ int main() {
                     break;
             }
             b.getInput(state, promote, loadedGame, fromy, fromx, toy, tox, firstTime);
-            if(state == MOVE || state == MOVE_LOAD)
-                cout<<b.print();
             if(!isLocal)
                 b.sendData(state, loadedGame, fromy, fromx, toy, tox,  promote, currSock);
+            if(state == MOVE || state == MOVE_LOAD){
+                cout<<b.print();
+            }
             if(state == QUIT){
-                if(!isLocal){
-                    close(currSock);
-                    if(isSrv)
-                        close(listenSock);
-                }
+                quit(isLocal, isSrv, currSock, listenSock);
                 return 0;
             }
             if(state == RESIGN){
                 if(isLocal){
-                    if(b.getColor() == 'w')
-                        cout<<"Black wins"<<endl;
-                    else
-                        cout<<"White wins"<<endl;
+                    cout<<b.getColorName()<<" wins!"<<endl;
                 }
                 break;
             }
-            if(b.endTurn(isLocal))
+            if(b.endTurn(isLocal)){
                 break;
+            }
             firstTime = false;
         }
     }

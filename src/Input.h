@@ -7,5 +7,6 @@
 * @return a character read from stdin
 */
 char charInput(std::string allowedInput);
+void quit(bool isLocal, bool isSrv, int currSock, int listenSock);
 
 #endif // INPUT_H_INCLUDED

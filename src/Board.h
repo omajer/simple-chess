@@ -49,6 +49,7 @@ class Board {
 public:
     bool getIsCheck() { return isCheck; }
     bool getIsMate() { return isMate; }
+    string getColorName();
     char getColor(){ return color; }
     /**Displays information about check and ends the game when a stalemate or a checkmate occurs.
     * @param isLocal true if the game is being played locally, false otherwise
