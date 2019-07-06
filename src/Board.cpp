@@ -104,14 +104,18 @@ string Board::saveToString () const {
     }
     state += color;
     return state;
-
 }
+
 bool Board::save (const char * filename) const{
     string state = saveToString();
     ofstream ofs (filename, ofstream::out);
-    if(!ofs.is_open())
+    if(!ofs.is_open()){
         return false;
+    }
     ofs << state;
+    if(!ofs.good()){
+        return false;
+    }
     ofs.close();
     return true;
 }
@@ -226,7 +230,6 @@ void Board::startGame(int& state, string& loadedGame, bool isLocal){
             }
             if(!loadedGame.empty()){
                 if(loadedGame[72] == 'b'){
-                    cout<<"Black to move"<<endl;
                     if(isLocal){
                         setColor('b');
                     }
@@ -234,9 +237,9 @@ void Board::startGame(int& state, string& loadedGame, bool isLocal){
                         state = LOAD;
                     }
                 } else{
-                    cout<<"White to move"<<endl;
                     state = MOVE_LOAD;
                 }
+                cout<<getColorName()<<" to move"<<endl;
                 return;
             }
             cout<<"Loading failed"<<endl;
@@ -262,10 +265,7 @@ bool Board::mate(const char playerColor){
                         mate = false;
                     board[8-j][i-97] = at(validMoves[k].first, validMoves[k].second);
                     board[8-validMoves[k].second][validMoves[k].first-97] = tmp;
-                    return mate;
-
                 }
-
             }
         }
     }
@@ -293,7 +293,6 @@ bool Board::mate(const char playerColor){
                 board[2][epSquare.first-97] = NULL;
                 board[3][epSquare.first-97] = tmp;
             }
-            return mate;
         }
         else if(playerColor == 'b' && epSquare.second == 3){
             if(at(epSquare.first+1,4) != NULL && at(epSquare.first+1,4)->print() == 'P'){
@@ -318,10 +317,9 @@ bool Board::mate(const char playerColor){
                 board[5][epSquare.first-97] = NULL;
                 board[4][epSquare.first-97] = tmp;
             }
-            return mate;
         }
     }
-    return true;
+    return mate;
 }
 
 bool Board::movePiece (const char fromy, const int fromx, const char toy, const int tox, const char playerColor){
@@ -428,46 +426,55 @@ string Board::print() const{
     str<<"  |█████|     |█████|     |█████|     |█████|     |"<<'\n';
     for(int i = 0; i < 8; i++){
         str<<8 - i;
-        if(i%2)
+        if(i%2){
             str<<" |  ";
-        else
+        }
+        else {
             str<<" |██";
+        }
         for(int j = 0; j < 8; j++){
             if(board[i][j] == NULL){
-                if(!((i+j) % 2))
+                if(!((i+j) % 2)){
                     str<<"█";
-                else
+                }
+                else {
                     str<<" ";
+                }
             } else {
                 str<<board[i][j]->print();
             }
-
-                if((i+j)%2){
-                    if(j<7)
-                        str<<"  |██";
-                    else
-                        str<<"  |  ";
-                    }
-
-                else
-                    str<<"██|  ";
-
+            if((i+j)%2){
+                if(j<7){
+                    str<<"  |██";
+                }
+                else{
+                    str<<"  |  ";
+                }
+            }
+            else{
+                str<<"██|  ";
+            }
         }
-        if(i%2)
+        if(i%2){
             str<<'\n'<<"  |_____|█████|_____|█████|_____|█████|_____|█████|"<<'\n';
-        else
+        }
+        else {
             str<<'\n'<<"  |█████|_____|█████|_____|█████|_____|█████|_____|"<<'\n';
+        }
         if(i < 7){
-            if(i%2)
+            if(i%2){
                 str<<"  |█████|     |█████|     |█████|     |█████|     |";
-            else
+            }
+            else {
                 str<<"  |     |█████|     |█████|     |█████|     |█████|";
             }
+        }
         str<<'\n';
     }
     str<<"     a     b     c     d     e     f     g     h"<<'\n';
-    while(str.get(c))
+    while(str.get(c)){
         result += c;
+    }
     return result;
 }
 
@@ -485,7 +492,6 @@ void Board::getInput(int& state, char& promote, string& loadedGame, char& fromy,
         cin.clear();
         getline(cin, input);
         if(!cin.good() || input.length() < 1){
-            cin.clear();
             cout<<"Wrong input, try again."<<endl;
             continue;
         }
@@ -497,10 +503,6 @@ void Board::getInput(int& state, char& promote, string& loadedGame, char& fromy,
                 continue;
             } else {
                 if((at(toy, tox)->print() == 'P' && tox == 1) || (at(toy, tox)->print() == 'p' && tox == 8)){       //handles promotion
-                    cout<<"Promote to queen (q), knight (n), bishop (b) or rook (r)?"<<endl;
-                    do{
-                        cin>>promote;
-                    } while(!cin.good() || (promote != 'q' && promote != 'r' && promote != 'n' && promote != 'b'));
                     promotion(toy, tox, promote, color);
                 }
                 isCheck = check(other(color));
@@ -558,40 +560,21 @@ bool Board::check(const char playerColor) const{
     if(playerColor == 'b' && at(y-1,x-1) != NULL && at(y-1,x-1)->print() == 'p')
         return true;
 
-    if(at(y+1,x+1) != NULL && (at(y+1,x+1)->getType() == 'k' ) && at(y+1,x+1)->getColor() != playerColor)            //checks if the king is threatened by the other king (in  hypothetical positions)
-        return true;
-    if(at(y+1,x) != NULL && (at(y+1,x)->getType() == 'k' ) && at(y+1,x)->getColor() != playerColor)
-        return true;
-    if(at(y+1,x-1) != NULL && (at(y+1,x-1)->getType() == 'k' ) && at(y+1,x-1)->getColor() != playerColor)
-        return true;
-    if(at(y,x+1) != NULL && (at(y,x+1)->getType() == 'k' ) && at(y,x+1)->getColor() != playerColor)
-        return true;
-    if(at(y,x-1) != NULL && (at(y,x-1)->getType() == 'k' ) && at(y,x-1)->getColor() != playerColor)
-        return true;
-    if(at(y-1,x+1) != NULL && (at(y-1,x+1)->getType() == 'k' ) && at(y-1,x+1)->getColor() != playerColor)
-        return true;
-    if(at(y-1,x) != NULL && (at(y-1,x)->getType() == 'k' ) && at(y-1,x)->getColor() != playerColor)
-        return true;
-    if(at(y-1,x-1) != NULL && (at(y-1,x-1)->getType() == 'k' ) && at(y-1,x-1)->getColor() != playerColor)
-        return true;
-    if(at(y+1,x+2) != NULL && (at(y+1,x+2)->getType() == 'n') && at(y+1,x+2)->getColor() != playerColor)            //checks if the king is threatened by a knight
-        return true;
-    if(at(y+1,x-2) != NULL && (at(y+1,x-2)->getType() == 'n') && at(y+1,x-2)->getColor() != playerColor)
-        return true;
-    if(at(y-1,x+2) != NULL && (at(y-1,x+2)->getType() == 'n') && at(y-1,x+2)->getColor() != playerColor)
-        return true;
-    if(at(y-1,x-2) != NULL && (at(y-1,x-2)->getType() == 'n') && at(y-1,x-2)->getColor() != playerColor)
-        return true;
+    for(int k = -1; k<=1; k++){
+        for(int l = -1; l<=1; l++){
+            if(at(y+k,x+l) != NULL && (at(y+k,x+l)->getType() == 'k' ) && at(y+k,x+l)->getColor() != playerColor){            //checks if the king is threatened by the other king (in  hypothetical positions)
+                return true;
+            }
+        }
+    }
+    int iter[8][2] = {{1, 2}, {1, -2}, {-1, 2}, {-1, -2}, {2, 1}, {2, -1}, {-2, 1}, {-2-1}};
 
-    if(at(y+2,x+1) != NULL && (at(y+2,x+1)->getType() == 'n') && at(y+2,x+1)->getColor() != playerColor)
-        return true;
+    for(int k = 0; k<8; k++){
+        if(at(y+iter[k][0],x+iter[k][1]) != NULL && (at(y+iter[k][0],x+iter[k][1])->getType() == 'n') && at(y+iter[k][0],x+iter[k][1])->getColor() != playerColor){            //checks if the king is threatened by a knight
+            return true;
+        }
+    }
 
-    if(at(y+2,x-1) != NULL && (at(y+2,x-1)->getType() == 'n') && at(y+2,x-1)->getColor() != playerColor)
-        return true;
-    if(at(y-2,x+1) != NULL && (at(y-2,x+1)->getType() == 'n') && at(y-2,x+1)->getColor() != playerColor)
-        return true;
-    if(at(y-2,x-1) != NULL && (at(y-2,x-1)->getType() == 'n') && at(y-2,x-1)->getColor() != playerColor)
-        return true;
     for(i = x+1; i <=8; i++) {
         if(at(y,i) != NULL){
            if( at(y,i)->getColor() == playerColor || ( at(y,i)->getType()!= 'r' &&  at(y,i)->getType()!= 'q' ))            //checks if the king is threatened by a rook or a queen on the same rank or file
@@ -676,7 +659,14 @@ bool Board::check(const char playerColor) const{
     return false;
 }
 
-void Board::promotion(const char toy, const int tox, const char promoteTo, const char playerColor){
+void Board::promotion(const char toy, const int tox, char& promoteTo, const char playerColor){
+    cout<<"Promote to queen (q), knight (n), bishop (b) or rook (r)?"<<endl;
+    string promote;
+    do{
+        cin.clear();
+        getline(cin, promote);
+    } while(!cin.good() || promote.length() != 1 || (promote.at(0) != 'q' && promote.at(0) != 'r' && promote.at(0) != 'n' && promote.at(0) != 'b'));
+    promoteTo = promote.at(0);
     delete at(toy, tox);
     switch(promoteTo){
         case 'q':
@@ -692,7 +682,6 @@ void Board::promotion(const char toy, const int tox, const char promoteTo, const
             board[8-tox][toy-97] = new Bishop(playerColor);
             break;
     }
-
 }
 
 void Board::makeBoard(const string state){

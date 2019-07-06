@@ -44,7 +44,7 @@ class Board {
     * @param promoteTo the piece to which the pawn should be promoted
     * @param playerColor the pawn's color
     */
-     void promotion(const char toy, const int tox, const char promoteTo, const char playerColor);
+     void promotion(const char toy, const int tox, char& promoteTo, const char playerColor);
 
 public:
     bool getIsCheck() { return isCheck; }
