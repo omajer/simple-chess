@@ -129,7 +129,7 @@ void Board::sendData(const int& state, const string& loadedGame, const char from
                      const int tox, char& promote, const int currSock) const{
     char buffer[100];
     memset(buffer, 0, 100);
-    if(state == MOVE_LOAD || state == LOAD){
+    if(state == LOAD_AND_MOVE || state == LOAD){
         send(currSock, &loadedGame[0], loadedGame.length(), 0);
     } else {
         if(state == MOVE){
@@ -244,7 +244,7 @@ void Board::startGame(int& state, string& loadedGame, bool isLocal){
                         setColor('b');
                     }
                     else {
-                        state = MOVE_LOAD;
+                        state = LOAD_AND_MOVE;
                     }
                     cout<<getColorName()<<" to move"<<endl;
                 }
@@ -253,7 +253,7 @@ void Board::startGame(int& state, string& loadedGame, bool isLocal){
                     cout<<getColorName()<<" to move. Play as "<<getColorName()<<"? (y/n)"<<endl;
                     tmpChar = charInput("yn");
                     if(tmpChar == 'y'){
-                        state = MOVE_LOAD;
+                        state = LOAD_AND_MOVE;
                     } else {
                         setColor(other(getColor()));
                         state = LOAD;
@@ -526,10 +526,10 @@ void Board::getInput(int& state, char& promote, string& loadedGame, char& fromy,
                 }
                 isCheck = check(other(color));
                 isMate = mate(other(color));
-                if(state != MOVE_LOAD || !firstTime){
+                if(state != LOAD_AND_MOVE || !firstTime){
                     state = MOVE;
                 }
-                if(state == MOVE_LOAD){
+                if(state == LOAD_AND_MOVE){
                     loadedGame = saveToString(true);
                 }
                 break;

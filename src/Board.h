@@ -9,7 +9,7 @@ class Board {
     Piece * board[8][8];
     /** the square to which a pawn may move after performing en passant capture */
     pair<char, int> epSquare;
-    static const int MOVE = 1, QUIT = 2, LOAD = 3, MOVE_LOAD = 4, RESIGN = 5;
+    static const int MOVE = 1, QUIT = 2, LOAD = 3, LOAD_AND_MOVE = 4, RESIGN = 5;
     /** the color of the player who is to move*/
     char color;
     bool isCheck, isMate;

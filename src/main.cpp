@@ -28,7 +28,7 @@ int main() {
     string tmpStr, address, port;
     char tmpChar, fromy, toy, buffer[100];
     int fromx, tox=1, connectionServSock = 0, cliSock = 0, listenServSock;
-    static const int MOVE = 1, QUIT = 2, MOVE_LOAD = 4, RESIGN = 5;
+    static const int MOVE = 1, QUIT = 2, LOAD_AND_MOVE = 4, RESIGN = 5;
     bool isLocal = true, isSrv = false, isCli = false;
     memset(buffer, 0, 100);
     cout<<"Welcome to chess!"<<endl<<"Would you like to play over the network? (y/n)"<<endl;
@@ -94,7 +94,7 @@ int main() {
             if(!isLocal){
                 b.sendData(state, loadedGame, fromy, fromx, toy, tox,  promote, currSock);
             }
-            if(state == MOVE || state == MOVE_LOAD){
+            if(state == MOVE || state == LOAD_AND_MOVE){
                 cout<<b.print();
             }
             if(state == QUIT){
