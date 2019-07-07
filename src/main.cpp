@@ -25,52 +25,30 @@ using namespace std;
 
 
 int main() {
-    string tmpStr, address, service;
+    string tmpStr, address, port;
     char tmpChar, fromy, toy, buffer[100];
-    int port, fromx, tox=1, clientSock = 0, cliSock = 0, listenSock;
+    int fromx, tox=1, clientSock = 0, cliSock = 0, listenSock;
     static const int MOVE = 1, QUIT = 2, MOVE_LOAD = 4, RESIGN = 5;
-    bool isLocal = true, isSrv = false, isCli = false;
+    bool isLocal = true, isSrv, isCli;
     memset(buffer, 0, 100);
     cout<<"Welcome to chess!"<<endl<<"Would you like to play over the network? (y/n)"<<endl;
     tmpChar = charInput("yn");
     if(tmpChar == 'y'){
         isLocal = false;
-        cout<<"Run as server or client? (s/c)"<<endl;
-        tmpChar = charInput("sc");
-        cout<<"Enter address"<<endl;
-        do{
-            cin.clear();
-            getline(cin, address);
-        } while (!cin.good());
-        cout<<"Enter port number"<<endl;
-        if(tmpChar == 'c'){
-            isCli = true;
-            do{
-                cin.clear();
-                cin >> port;
-            } while (!cin.good());
-
-            cliSock = prepareCliSocket ( &address[0], port );
-            if (cliSock == -1){
-                cout<<"Couldn't connect"<<endl;
-                return 1;
+        while(true){
+            isSrv = false;
+            isCli = false;
+            clientSock = 0;
+            cliSock = 0;
+            listenSock = 0;
+            if(establishConn(cliSock, listenSock, clientSock, isSrv, isCli) == 0){
+                break;
             }
-        }
-        else {
-            isSrv = true;
-            do{
-                cin.clear();
-                cin >> service;
-            } while (!cin.good());
-            listenSock = prepareSrvSocket ( &address[0], &service[0]);
-            if ( listenSock == -1 ){
-                cout<<"Couldn't connect"<<endl;
-                return 1;
+            cout<<"Couldn't connect. Try again? (y/n)"<<endl;
+            tmpChar = charInput("ynq");
+            if(tmpChar != 'y'){
+                return 0;
             }
-            struct sockaddr addr;
-            socklen_t addrLen = sizeof ( addr );
-            cout<<"Waiting for your opponent..."<<endl;
-            clientSock = accept ( listenSock, &addr, &addrLen );
         }
     }
 
