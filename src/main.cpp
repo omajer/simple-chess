@@ -47,6 +47,7 @@ int main() {
             cout<<"Couldn't connect. Try again? (y/n)"<<endl;
             tmpChar = charInput("ynq");
             if(tmpChar != 'y'){
+                cin.clear();
                 return 0;
             }
         }
@@ -72,6 +73,7 @@ int main() {
             b.startGame(state, loadedGame, isLocal);
             if(state == QUIT){
                 quit(isLocal, isSrv, currSock, listenSock);
+                cin.clear();
                 return 0;
             }
             cout<<b.print();
@@ -79,8 +81,10 @@ int main() {
         while(true){
             if(!isLocal && (isCli || (isSrv && !firstTime))){
                 int c = b.receiveData(state, currSock, listenSock, isLocal, isSrv, loadedGame);
-                if(c == 2)
+                if(c == 2){
                     return 0;
+                    cin.clear();
+                }
                 else if(c == 1)
                     break;
             }
@@ -92,6 +96,7 @@ int main() {
             }
             if(state == QUIT){
                 quit(isLocal, isSrv, currSock, listenSock);
+                cin.clear();
                 return 0;
             }
             if(state == RESIGN){
@@ -106,5 +111,6 @@ int main() {
             firstTime = false;
         }
     }
+    cin.clear();
     return 0;
 }
