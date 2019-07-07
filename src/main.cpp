@@ -29,7 +29,7 @@ int main() {
     char tmpChar, fromy, toy, buffer[100];
     int fromx, tox=1, connectionServSock = 0, cliSock = 0, listenServSock;
     static const int MOVE = 1, QUIT = 2, MOVE_LOAD = 4, RESIGN = 5;
-    bool isLocal = true, isSrv, isCli;
+    bool isLocal = true, isSrv = false, isCli = false;
     memset(buffer, 0, 100);
     cout<<"Welcome to chess!"<<endl<<"Would you like to play over the network? (y/n)"<<endl;
     tmpChar = charInput("yn");
@@ -63,8 +63,9 @@ int main() {
         string loadedGame;
         int currSock, state = 0;
         bool firstTime = true;
-        if(isSrv)
+        if(isSrv){
             currSock = connectionServSock;
+        }
         else if(isCli){
             b.setColor('b');
             currSock = cliSock;
@@ -82,15 +83,17 @@ int main() {
             if(!isLocal && (isCli || (isSrv && !firstTime))){
                 int c = b.receiveData(state, currSock, listenServSock, isLocal, isSrv, loadedGame);
                 if(c == 2){
-                    return 0;
                     cin.clear();
+                    return 0;
                 }
-                else if(c == 1)
+                else if(c == 1){
                     break;
+                }
             }
             b.getInput(state, promote, loadedGame, fromy, fromx, toy, tox, firstTime);
-            if(!isLocal)
+            if(!isLocal){
                 b.sendData(state, loadedGame, fromy, fromx, toy, tox,  promote, currSock);
+            }
             if(state == MOVE || state == MOVE_LOAD){
                 cout<<b.print();
             }
@@ -111,6 +114,7 @@ int main() {
             firstTime = false;
         }
     }
+    cin.ignore(256,'\n');
     cin.clear();
     return 0;
 }

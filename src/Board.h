@@ -37,7 +37,7 @@ class Board {
     /** Saves the current state of the chessboard to a string. Used when saving to a file.
     * @return a string in which the current state of the chessboard is encoded
     */
-    string saveToString () const;
+    string saveToString (bool changeColor) const;
    /** Promotes a pawn after traversing the board.
     * @param toy file letter of the destination square
     * @param tox rank number of the destination square
@@ -50,7 +50,7 @@ public:
     bool getIsCheck() { return isCheck; }
     bool getIsMate() { return isMate; }
     string getColorName();
-    char getColor(){ return color; }
+    char getColor() const { return color; }
     /**Displays information about check and ends the game when a stalemate or a checkmate occurs.
     * @param isLocal true if the game is being played locally, false otherwise
     * @return true if the game has ended, flase otherwise
@@ -91,7 +91,7 @@ public:
     * @param playerColor the color of one of the players
     * @return 'b' for white, 'w' for black
     */
-    char other (const char playerColor);
+    char other (const char playerColor) const;
      /** Asks the user if they want to load a saved game and handles the loading.
     * @param state the current state of the game, used when playing over the network
     * @param loadedGame If the player wants to load a new game, this string will contain the state of the chessboard.

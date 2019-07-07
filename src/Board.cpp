@@ -81,7 +81,7 @@ bool Board::endTurn(const bool isLocal){
     return false;
 }
 
-string Board::saveToString () const {
+string Board::saveToString (bool changeColor) const {
     string state = "";
     for(int i = 0; i < 64; i++){
         if(board[i/8][i%8] == NULL)
@@ -102,12 +102,17 @@ string Board::saveToString () const {
             }
         }
     }
-    state += color;
+    if(changeColor){
+        state += other(getColor());
+    }
+    else {
+        state += getColor();
+    }
     return state;
 }
 
 bool Board::save (const char * filename) const{
-    string state = saveToString();
+    string state = saveToString(false);
     ofstream ofs (filename, ofstream::out);
     if(!ofs.is_open()){
         return false;
@@ -154,9 +159,10 @@ void Board::sendData(const int& state, const string& loadedGame, const char from
 
 int Board::receiveData(int& state, const int currSock, const int listenSock, const bool isLocal, const bool isSrv,
                        string& loadedGame){
-    char buffer[100];
-    if(state == LOAD)
+    char buffer[100] = {};
+    if(state == LOAD){
         state = 0;
+    }
     int a = recv(currSock, buffer, sizeof(buffer) - 1, 0);
     if(a <= 0){
         close(currSock);
@@ -166,20 +172,23 @@ int Board::receiveData(int& state, const int currSock, const int listenSock, con
         cout<<"Your opponent has quit the game"<<endl;
         if(!isLocal){
             close(currSock);
-            if(isSrv)
+            if(isSrv){
                 close(listenSock);
+            }
         }
         return 2;
     }
     if(buffer[0] == 'r'){
         cout<<"Your opponent has resigned"<<endl<<"You win!"<<endl;
-            return 1;
+        return 1;
     }
     if(buffer[72]){                         //handles loading a game
         loadedGame.assign(buffer, 73);
-        buffer[72] = 0;
         deleteBoard();
         makeBoard(loadedGame);
+        setColor(buffer[72]);
+        cout<<"Game loaded. You are playing as "<<getColorName()<<"."<<endl;
+        buffer[72] = 0;
         cout<<print();
     } else {                                         //handles moves
         movePiece(buffer[0],(int)buffer[1],buffer[2],(int)buffer[3],other(color));
@@ -229,17 +238,27 @@ void Board::startGame(int& state, string& loadedGame, bool isLocal){
                 continue;
             }
             if(!loadedGame.empty()){
-                if(loadedGame[72] == 'b'){
-                    if(isLocal){
+
+                if(isLocal){
+                    if(loadedGame[72] == 'b'){
                         setColor('b');
                     }
-                    else{
+                    else {
+                        state = MOVE_LOAD;
+                    }
+                    cout<<getColorName()<<" to move"<<endl;
+                }
+                else {
+                    setColor(loadedGame[72]);
+                    cout<<getColorName()<<" to move. Play as "<<getColorName()<<"? (y/n)"<<endl;
+                    tmpChar = charInput("yn");
+                    if(tmpChar == 'y'){
+                        state = MOVE_LOAD;
+                    } else {
+                        setColor(other(getColor()));
                         state = LOAD;
                     }
-                } else{
-                    state = MOVE_LOAD;
                 }
-                cout<<getColorName()<<" to move"<<endl;
                 return;
             }
             cout<<"Loading failed"<<endl;
@@ -409,7 +428,7 @@ bool Board::movePiece (const char fromy, const int fromx, const char toy, const 
     return true;
 }
 
-char Board::other (const char playerColor){
+char Board::other (const char playerColor) const{
     if(playerColor == 'w')
         return 'b';
     if(playerColor == 'b')
@@ -507,10 +526,12 @@ void Board::getInput(int& state, char& promote, string& loadedGame, char& fromy,
                 }
                 isCheck = check(other(color));
                 isMate = mate(other(color));
-                if(state != MOVE_LOAD || !firstTime)
+                if(state != MOVE_LOAD || !firstTime){
                     state = MOVE;
-                if(state == MOVE_LOAD)
-                    loadedGame = saveToString();
+                }
+                if(state == MOVE_LOAD){
+                    loadedGame = saveToString(true);
+                }
                 break;
             }
         } else if(input.length() > 1){
@@ -528,10 +549,12 @@ void Board::getInput(int& state, char& promote, string& loadedGame, char& fromy,
                 cin.clear();
                 getline(cin, tmpStr);
             } while (!cin.good());
-            if(!save(&tmpStr[0]))
+            if(!save(&tmpStr[0])){
                 cout<<"Cannot save game"<<endl;
-            else
+            }
+            else{
                 cout<<"Game saved"<<endl;
+            }
             continue;
         } else {
             cout<<"Wrong input, try again."<<endl;
