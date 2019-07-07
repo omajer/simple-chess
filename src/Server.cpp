@@ -119,7 +119,7 @@ int prepareSrvSocket(const char * listenAddr, const char * port){
     return server_fd;
 }
 
-int establishConn(int& cliSock, int& listenSock, int& clientSock, bool& isSrv, bool& isCli){
+int establishConn(int& cliSock, int& listenServSock, int& connectionServSock, bool& isSrv, bool& isCli){
     string address, port;
     cout<<"Run as server or client? (s/c)"<<endl;
     char tmpChar = charInput("sc");
@@ -144,12 +144,12 @@ int establishConn(int& cliSock, int& listenSock, int& clientSock, bool& isSrv, b
         isSrv = true;
         struct sockaddr_storage their_addr;
         socklen_t addr_size = sizeof their_addr;
-        listenSock = prepareSrvSocket(&address[0], &port[0]);
-        if (listenSock == -1){
+        listenServSock = prepareSrvSocket(&address[0], &port[0]);
+        if (listenServSock == -1){
             return 1;
         }
         cout<<"Waiting for your opponent..."<<endl;
-        clientSock = accept(listenSock, (struct sockaddr*)&their_addr, &addr_size);
+        connectionServSock = accept(listenServSock, (struct sockaddr*)&their_addr, &addr_size);
     }
     return 0;
 }

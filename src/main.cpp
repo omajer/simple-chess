@@ -27,21 +27,21 @@ using namespace std;
 int main() {
     string tmpStr, address, port;
     char tmpChar, fromy, toy, buffer[100];
-    int fromx, tox=1, clientSock = 0, cliSock = 0, listenSock;
+    int fromx, tox=1, connectionServSock = 0, cliSock = 0, listenServSock;
     static const int MOVE = 1, QUIT = 2, MOVE_LOAD = 4, RESIGN = 5;
     bool isLocal = true, isSrv, isCli;
     memset(buffer, 0, 100);
     cout<<"Welcome to chess!"<<endl<<"Would you like to play over the network? (y/n)"<<endl;
     tmpChar = charInput("yn");
-    if(tmpChar == 'y'){
+    if(tmpChar == 'y'){                         //establish connection
         isLocal = false;
         while(true){
             isSrv = false;
             isCli = false;
-            clientSock = 0;
+            connectionServSock = 0;
             cliSock = 0;
-            listenSock = 0;
-            if(establishConn(cliSock, listenSock, clientSock, isSrv, isCli) == 0){
+            listenServSock = 0;
+            if(establishConn(cliSock, listenServSock, connectionServSock, isSrv, isCli) == 0){
                 break;
             }
             cout<<"Couldn't connect. Try again? (y/n)"<<endl;
@@ -64,7 +64,7 @@ int main() {
         int currSock, state = 0;
         bool firstTime = true;
         if(isSrv)
-            currSock = clientSock;
+            currSock = connectionServSock;
         else if(isCli){
             b.setColor('b');
             currSock = cliSock;
@@ -72,7 +72,7 @@ int main() {
         if(isLocal || isSrv) {
             b.startGame(state, loadedGame, isLocal);
             if(state == QUIT){
-                quit(isLocal, isSrv, currSock, listenSock);
+                quit(isLocal, isSrv, currSock, listenServSock);
                 cin.clear();
                 return 0;
             }
@@ -80,7 +80,7 @@ int main() {
         }
         while(true){
             if(!isLocal && (isCli || (isSrv && !firstTime))){
-                int c = b.receiveData(state, currSock, listenSock, isLocal, isSrv, loadedGame);
+                int c = b.receiveData(state, currSock, listenServSock, isLocal, isSrv, loadedGame);
                 if(c == 2){
                     return 0;
                     cin.clear();
@@ -95,7 +95,7 @@ int main() {
                 cout<<b.print();
             }
             if(state == QUIT){
-                quit(isLocal, isSrv, currSock, listenSock);
+                quit(isLocal, isSrv, currSock, listenServSock);
                 cin.clear();
                 return 0;
             }
