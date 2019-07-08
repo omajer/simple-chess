@@ -19,6 +19,7 @@
 #include"Input.h"
 using namespace std;
 
+
 class Piece;
 
 string Board::load (string filename){
@@ -125,12 +126,13 @@ bool Board::save (const char * filename) const{
     return true;
 }
 
-void Board::sendData(const int& state, const string& loadedGame, const char fromy, const int fromx, const char toy,
+int Board::sendData(const int& state, const string& loadedGame, const char fromy, const int fromx, const char toy,
                      const int tox, char& promote, const int currSock) const{
     char buffer[100];
     memset(buffer, 0, 100);
+    int res = -1;
     if(state == LOAD_AND_MOVE || state == LOAD){
-        send(currSock, &loadedGame[0], loadedGame.length(), 0);
+        res = send(currSock, &loadedGame[0], loadedGame.length(), 0);
     } else {
         if(state == MOVE){
             buffer[0] = fromy;
@@ -152,9 +154,9 @@ void Board::sendData(const int& state, const string& loadedGame, const char from
         else if(state == RESIGN)
             buffer[0] = 'r';
         buffer[72] = 0;
-        send(currSock, buffer, 74, 0);
+        res = send(currSock, buffer, 74, 0);
     }
-    return;
+    return res;
 }
 
 int Board::receiveData(int& state, const int currSock, const int listenSock, const bool isLocal, const bool isSrv,
@@ -169,7 +171,6 @@ int Board::receiveData(int& state, const int currSock, const int listenSock, con
         return 2;
     }
     if(buffer[0] == 'q'){
-        cout<<"Your opponent has quit the game"<<endl;
         if(!isLocal){
             close(currSock);
             if(isSrv){
@@ -216,7 +217,7 @@ void Board::startGame(int& state, string& loadedGame, bool isLocal){
     while(true){
         cout<<"Would you like to load a previous game or start a new game? (l/n)"<<endl;
         tmpChar = charInput("lnq");
-        if(tmpChar == 'q'){
+        if(tmpChar == '\0' || tmpChar == 'q'){
             state = QUIT;
             return;
         }
@@ -226,6 +227,7 @@ void Board::startGame(int& state, string& loadedGame, bool isLocal){
         else {                              //handles loading a saved game
             cout<<"Enter filename"<<endl;
             do{
+                cout<<"enter"<<endl;
                 cin.clear();
                 getline(cin, tmpStr);
             } while (!cin.good());
@@ -252,6 +254,10 @@ void Board::startGame(int& state, string& loadedGame, bool isLocal){
                     setColor(loadedGame[72]);
                     cout<<getColorName()<<" to move. Play as "<<getColorName()<<"? (y/n)"<<endl;
                     tmpChar = charInput("yn");
+                    if(tmpChar == '\0'){
+                        state = QUIT;
+                        return;
+                    }
                     if(tmpChar == 'y'){
                         state = LOAD_AND_MOVE;
                     } else {
@@ -504,14 +510,16 @@ Piece * Board::at (const char y, const int x) const {
     return board[8 - x][y - 97];
 }
 
-void Board::getInput(int& state, char& promote, string& loadedGame, char& fromy, int& fromx, char& toy, int& tox, const bool firstTime){
+int Board::getInput(int& state, char& promote, string& loadedGame, char& fromy, int& fromx, char& toy, int& tox, const bool firstTime){
     string tmpStr;
-    while(state != LOAD){
+    int wrongInputCounter = TRIES;
+    while(state != LOAD && wrongInputCounter > 0){
         string input;
         cin.clear();
         getline(cin, input);
         if(!cin.good() || input.length() < 1){
             cout<<"Wrong input, try again."<<endl;
+            wrongInputCounter--;
             continue;
         }
         if(input[0] >= 'a' && input[0] <= 'h') {            //performs moves
@@ -519,6 +527,7 @@ void Board::getInput(int& state, char& promote, string& loadedGame, char& fromy,
             iss>>fromy>>fromx>>toy>>tox;
             if(iss.fail() || !movePiece(fromy,fromx,toy,tox,color)){
                 cout<<"Wrong input, try again."<<endl;
+                wrongInputCounter--;
                 continue;
             } else {
                 if((at(toy, tox)->print() == 'P' && tox == 1) || (at(toy, tox)->print() == 'p' && tox == 8)){       //handles promotion
@@ -536,6 +545,7 @@ void Board::getInput(int& state, char& promote, string& loadedGame, char& fromy,
             }
         } else if(input.length() > 1){
             cout<<"Wrong input, try again."<<endl;
+            wrongInputCounter--;
             continue;
         }else if(input[0] == 'q'){
             state = QUIT;
@@ -558,9 +568,13 @@ void Board::getInput(int& state, char& promote, string& loadedGame, char& fromy,
             continue;
         } else {
             cout<<"Wrong input, try again."<<endl;
+            wrongInputCounter--;
         }
     }
-    return;
+    if(wrongInputCounter == 0){
+        return 1;
+    }
+    return 0;
 }
 
 bool Board::check(const char playerColor) const{

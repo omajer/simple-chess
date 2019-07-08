@@ -67,7 +67,7 @@ public:
     * @param promote When the player promotes a pawn, this variable contains the name of the promoted piece
     * @param currSock descriptor for the socket
     */
-    void sendData(const int& state, const string& loadedGame, const char fromy, const int fromx, const char toy,
+    int sendData(const int& state, const string& loadedGame, const char fromy, const int fromx, const char toy,
                   const int tox, char& promote, const int currSock) const;
     /** Enables access to the pieces on the board using standard chess notation.
     * @param y file (column) letter
@@ -117,8 +117,9 @@ public:
     * @param toy file letter of the destination square of the piece which the player moved
     * @param tox rank number of the destination square of the piece which the player moved
     * @param firstTime true if the player is making their first move, false otherwise
+    * @return 0 on success, 1 on failure
     */
-    void getInput(int& state, char& promote, string& loadedGame,
+    int getInput(int& state, char& promote, string& loadedGame,
                   char& fromy, int& fromx, char& toy, int& tox, const bool firstTime);
     /** Moves a piece on the board.
     * @param fromy file letter of the origin square of the piece which the player moved

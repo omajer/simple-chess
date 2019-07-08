@@ -92,6 +92,9 @@ int establishConn(int& cliSock, int& listenServSock, int& connectionServSock, bo
     string address, port;
     cout<<"Run as server or client? (s/c)"<<endl;
     char tmpChar = charInput("sc");
+    if(tmpChar == '\0'){
+        return 1;
+    }
     cout<<"Enter address (press enter to use "<<DEFAULT_ADDRESS<<")"<<endl;
     do{
         cin.clear();

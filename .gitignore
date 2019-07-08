@@ -33,3 +33,6 @@
 
 # Save files
 *.sav
+
+# Test files
+*.test

@@ -33,6 +33,9 @@ int main() {
     memset(buffer, 0, 100);
     cout<<"Welcome to chess!"<<endl<<"Would you like to play over the network? (y/n)"<<endl;
     tmpChar = charInput("yn");
+    if(tmpChar == '\0'){
+        return 0;
+    }
     if(tmpChar == 'y'){                         //establish connection
         isLocal = false;
         while(true){
@@ -83,23 +86,33 @@ int main() {
             if(!isLocal && (isCli || (isSrv && !firstTime))){
                 int c = b.receiveData(state, currSock, listenServSock, isLocal, isSrv, loadedGame);
                 if(c == 2){
+                    cout<<"Your opponent has quit the game. Press enter to exit."<<endl;
                     cin.clear();
+                    cin.ignore(1000,'\n');
                     return 0;
                 }
                 else if(c == 1){
                     break;
                 }
             }
-            b.getInput(state, promote, loadedGame, fromy, fromx, toy, tox, firstTime);
+            if(b.getInput(state, promote, loadedGame, fromy, fromx, toy, tox, firstTime) != 0){
+                quit(isLocal, isSrv, currSock, listenServSock);
+                fflush(stdin);
+                return 0;
+            }
             if(!isLocal){
-                b.sendData(state, loadedGame, fromy, fromx, toy, tox,  promote, currSock);
+                if(b.sendData(state, loadedGame, fromy, fromx, toy, tox,  promote, currSock) == -1){
+                    quit(isLocal, isSrv, currSock, listenServSock);
+                    cout<<"Connection failure"<<endl;
+                    return 0;
+                }
             }
             if(state == MOVE || state == LOAD_AND_MOVE){
                 cout<<b.print();
             }
             if(state == QUIT){
                 quit(isLocal, isSrv, currSock, listenServSock);
-                cin.clear();
+                fflush(stdin);
                 return 0;
             }
             if(state == RESIGN){
