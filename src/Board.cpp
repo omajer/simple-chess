@@ -227,7 +227,6 @@ void Board::startGame(int& state, string& loadedGame, bool isLocal){
         else {                              //handles loading a saved game
             cout<<"Enter filename"<<endl;
             do{
-                cout<<"enter"<<endl;
                 cin.clear();
                 getline(cin, tmpStr);
             } while (!cin.good());

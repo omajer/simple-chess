@@ -2,7 +2,7 @@
 #define INPUT_H_INCLUDED
 #include<string>
 
-static const int TRIES = 5;
+static const int TRIES = 10;
 
 /** Reads a single character from stdin
 * @param allowedInput a string containing all characters that are allowed as input

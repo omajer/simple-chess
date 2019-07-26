@@ -12,3 +12,5 @@ clean:
 	rm -r doc
 doc:
 	cd src; doxygen Doxyfile
+test:
+	./chess.o <basicin.test | diff basic.test -

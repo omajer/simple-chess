@@ -32,8 +32,8 @@ int main() {
     bool isLocal = true, isSrv = false, isCli = false;
     memset(buffer, 0, 100);
     cout<<"Welcome to chess!"<<endl<<"Would you like to play over the network? (y/n)"<<endl;
-    tmpChar = charInput("yn");
-    if(tmpChar == '\0'){
+    tmpChar = charInput("ynq");
+    if(tmpChar == '\0' || tmpChar == 'q'){
         return 0;
     }
     if(tmpChar == 'y'){                         //establish connection
@@ -127,7 +127,5 @@ int main() {
             firstTime = false;
         }
     }
-    cin.ignore(256,'\n');
-    cin.clear();
     return 0;
 }
