@@ -603,95 +603,50 @@ bool Board::check(const char playerColor) const{
             }
         }
     }
-    int iter[8][2] = {{1, 2}, {1, -2}, {-1, 2}, {-1, -2}, {2, 1}, {2, -1}, {-2, 1}, {-2-1}};
+    int iterKnight[8][2] = {{1, 2}, {1, -2}, {-1, 2}, {-1, -2}, {2, 1}, {2, -1}, {-2, 1}, {-2-1}};
 
     for(int k = 0; k<8; k++){
-        if(at(y+iter[k][0],x+iter[k][1]) != NULL && (at(y+iter[k][0],x+iter[k][1])->getType() == 'n') && at(y+iter[k][0],x+iter[k][1])->getColor() != playerColor){            //checks if the king is threatened by a knight
+        if(at(y+iterKnight[k][0],x+iterKnight[k][1]) != NULL && (at(y+iterKnight[k][0],x+iterKnight[k][1])->getType() == 'n') && at(y+iterKnight[k][0],x+iterKnight[k][1])->getColor() != playerColor){            //checks if the king is threatened by a knight
             return true;
         }
     }
 
-    for(i = x+1; i <=8; i++) {
-        if(at(y,i) != NULL){
-           if( at(y,i)->getColor() == playerColor || ( at(y,i)->getType()!= 'r' &&  at(y,i)->getType()!= 'q' ))            //checks if the king is threatened by a rook or a queen on the same rank or file
-                break;
-           if( at(y,i)->getColor() != playerColor && ( at(y,i)->getType() == 'r' || at(y,i)->getType() == 'q'))
-                return true;
+    int iterSameFile[4][2] = {{0, 1}, {0, -1}, {1, 0}, {-1, 0}};
+
+    for(int k = 0; k< 4; k++){
+        i = x+iterSameFile[k][1];
+        j = y+iterSameFile[k][0];
+        while(i >= 1 && i <= 8 && j >= 'a' && j <= 'h'){
+            if(at(j,i) != NULL){
+                if( at(j,i)->getColor() == playerColor || ( at(j,i)->getType()!= 'r' &&  at(j,i)->getType()!= 'q' ))
+                    break;
+                if( at(j,i)->getColor() != playerColor && ( at(j,i)->getType() == 'r' || at(j,i)->getType() == 'q'))
+                    return true;
+            }
+            i += iterSameFile[k][1];
+            j += iterSameFile[k][0];
         }
-    }
-    for(i = x-1; i >= 1; i--) {
-        if(at(y,i) != NULL){
-           if( at(y,i)->getColor() == playerColor || ( at(y,i)->getType()!= 'r' &&  at(y,i)->getType()!= 'q' ))
-                break;
-           if( at(y,i)->getColor() != playerColor && ( at(y,i)->getType() == 'r' || at(y,i)->getType() == 'q'))
-                return true;
-        }
-    }
-    for(j = y+1; j <='h'; j++) {
-        if(at(j,x) != NULL){
-           if( at(j,x)->getColor() == playerColor || ( at(j,x)->getType()!= 'r'  && at(j,x)->getType()!= 'q' ))
-                break;
-           if( at(j,x)->getColor() != playerColor && ( at(j,x)->getType() == 'r'  || at(j,x)->getType() == 'q'))
-                return true;
-        }
-    }
-    for(j = y-1; j >='a'; j--) {
-        if(at(j,x) != NULL){
-           if( at(j,x)->getColor() == playerColor || ( at(j,x)->getType()!= 'r'  && at(j,x)->getType()!= 'q' ))
-                break;
-           if( at(j,x)->getColor() != playerColor && ( at(j,x)->getType() == 'r'  || at(j,x)->getType() == 'q'))
-                return true;
-        }
-    }
-    j = y + 1;
-    i = x + 1;
-    while( j <='h' && i <= 8) {
-        if(at(j,i) != NULL){
-           if( at(j,i)->getColor() == playerColor || ( at(j,i)->getType()!= 'b' && at(j,i)->getType()!= 'q'))            //checks if the king is threatened by a bishop or a queen on the same diagonal
-               break;
-           if( at(j,i)->getColor() != playerColor && ( at(j,i)->getType() == 'b' || at(j,i)->getType() == 'q'))
-                return true;
-        }
-        j++;
-        i++;
-    }
-    j = y - 1;
-    i = x + 1;
-    while( j >='a' && i <= 8) {
-        if(at(j,i) != NULL){
-           if( at(j,i)->getColor() == playerColor || ( at(j,i)->getType()!= 'b' && at(j,i)->getType()!= 'q'))
-                break;
-           if( at(j,i)->getColor() != playerColor && ( at(j,i)->getType() == 'b'  || at(j,i)->getType() == 'q' ))
-                return true;
-        }
-        j--;
-        i++;
-    }
-    j = y + 1;
-    i = x - 1;
-    while( j <='h' && i >= 1) {
-        if(at(j,i) != NULL){
-           if( at(j,i)->getColor() == playerColor || ( at(j,i)->getType()!= 'b' && at(j,i)->getType()!= 'q'))
-                break;
-           if( at(j,i)->getColor() != playerColor && ( at(j,i)->getType() == 'b' || at(j,i)->getType() == 'q' ))
-                return true;
-        }
-        j++;
-        i--;
     }
 
-    j = y - 1;
-    i = x - 1;
-    while( j >='a' && i >= 1) {
-        if(at(j,i) != NULL){
-           if( at(j,i)->getColor() == playerColor || ( at(j,i)->getType()!= 'b' && at(j,i)->getType()!= 'q'))
-                break;
-           if( at(j,i)->getColor() != playerColor && ( at(j,i)->getType() == 'b'  || at(j,i)->getType() == 'q' ))
-                return true;
+    int iterSameDiagonal[4][2] = {{1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
+
+    for(int k = 0; k< 4; k++){
+        i = x+iterSameDiagonal[k][1];
+        j = y+iterSameDiagonal[k][0];
+        while(i >= 1 && i <= 8 && j >= 'a' && j <= 'h'){
+            if(at(j,i) != NULL){
+                if( at(j,i)->getColor() == playerColor || ( at(j,i)->getType()!= 'b' &&  at(j,i)->getType()!= 'q' ))
+                    break;
+                if( at(j,i)->getColor() != playerColor && ( at(j,i)->getType() == 'b' || at(j,i)->getType() == 'q'))
+                    return true;
+            }
+            i += iterSameDiagonal[k][1];
+            j += iterSameDiagonal[k][0];
         }
-        j--;
-        i--;
     }
+
+
+
     return false;
 }
 
