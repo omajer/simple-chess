@@ -59,7 +59,7 @@ string Board::getColorName(){
     }
 }
 
-bool Board::endTurn(const bool isLocal){
+bool Board::endGame(const bool isLocal){
     if(isCheck && isMate){
         cout<<"Checkmate!"<<endl;
         if(!isLocal){
@@ -346,6 +346,40 @@ bool Board::mate(const char playerColor){
     return mate;
 }
 
+vector< pair<char, int> > Board::getMoves(const char playerColor){
+    int j;
+    char i;
+    vector< pair<char, int> > validMoves;
+    for(i = 'a'; i <= 'h'; i++){
+        for(j = 1; j <= 8; j++){
+            if(at(i,j)!= NULL && at(i,j)->getColor() == playerColor){
+                auto pieceMoves = at(i,j)->validMoves(i,j,*this);
+
+                for(unsigned int k  = 0; k < pieceMoves.size(); k++){
+                    bool dummy = false;
+                    Piece * tmp = at(pieceMoves[k].first, pieceMoves[k].second);
+                    board[8-pieceMoves[k].second][pieceMoves[k].first-97] = at(i,j);
+                    board[8-j][i-97]  = NULL;
+
+                    if(!check(playerColor)){
+                        dummy = true;
+
+
+                        validMoves.push_back(pieceMoves[k]);
+                    }
+                    board[8-j][i-97] = at(pieceMoves[k].first, pieceMoves[k].second);
+                    board[8-pieceMoves[k].second][pieceMoves[k].first-97] = tmp;
+                    if(dummy)
+                      //  cout<<at(i, j)->print()<<": "<<pieceMoves[k].first<<" "<<pieceMoves[k].second<<", ";
+                }
+            }
+        }
+    }
+    return validMoves;
+}
+
+
+
 bool Board::movePiece (const char fromy, const int fromx, const char toy, const int tox, const char playerColor){
     if(at(fromy, fromx) == NULL || at(fromy, fromx)->getColor() != playerColor || toy < 97 || toy > 104 || tox < 1 || tox > 8 || (at(toy, tox) != NULL && at(toy, tox)->getColor() == playerColor))
         return false;
@@ -509,6 +543,38 @@ Piece * Board::at (const char y, const int x) const {
     return board[8 - x][y - 97];
 }
 
+int Board::evaluate(){
+    int whiteEvaluation = 0;
+
+    for(char i = 'a'; i <= 'h'; i++){
+        for(int j = 1; j <= 8; j++){
+            if(at(i, j) == NULL){
+                continue;
+            }
+            int colorMult = 1;
+            if(at(i, j)->getColor() == 'b'){
+                colorMult = -1;
+            }
+            if(at(i, j)->getType() == 'k'){
+                whiteEvaluation += 200*colorMult;
+            }
+            if(at(i, j)->getType() == 'q'){
+                whiteEvaluation += 9*colorMult;
+            }
+            if(at(i, j)->getType() == 'r'){
+                whiteEvaluation += 5*colorMult;
+            }
+            if(at(i, j)->getType() == 'b' || at(i, j)->getType() == 'n'){
+                whiteEvaluation += 3*colorMult;
+            }
+            if(at(i, j)->getType() == 'p'){
+                whiteEvaluation += 1*colorMult;
+            }
+        }
+    }
+    return whiteEvaluation;
+}
+
 int Board::getInput(int& state, char& promote, string& loadedGame, char& fromy, int& fromx, char& toy, int& tox, const bool firstTime){
     string tmpStr;
     int wrongInputCounter = TRIES;
@@ -521,7 +587,9 @@ int Board::getInput(int& state, char& promote, string& loadedGame, char& fromy, 
             wrongInputCounter--;
             continue;
         }
-        if(input[0] >= 'a' && input[0] <= 'h') {            //performs moves
+        if(input[0] >= 'a' && input[0] <= 'h') {           //performs moves
+
+
             istringstream iss(input);
             iss>>fromy>>fromx>>toy>>tox;
             if(iss.fail() || !movePiece(fromy,fromx,toy,tox,color)){
@@ -542,6 +610,10 @@ int Board::getInput(int& state, char& promote, string& loadedGame, char& fromy, 
                 }
                 break;
             }
+
+
+
+
         } else if(input.length() > 1){
             cout<<"Wrong input, try again."<<endl;
             wrongInputCounter--;

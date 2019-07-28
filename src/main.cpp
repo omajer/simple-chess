@@ -121,9 +121,19 @@ int main() {
                 }
                 break;
             }
-            if(b.endTurn(isLocal)){
+            if(b.endGame(isLocal)){
                 break;
             }
+            string savedGame = b.saveToString(false);
+
+
+            vector< pair<char, int> > moves = b.getMoves(b.getColor());
+
+            b.evaluate();
+
+            b.makeBoard(savedGame);
+
+
             firstTime = false;
         }
     }

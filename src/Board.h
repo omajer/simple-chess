@@ -20,10 +20,6 @@ class Board {
     /** Sets up a new chessboard in the initial configuration.
     */
     void newBoard();
-    /** Creates a new chessboard. Used for loading from a file.
-    * @param state Contains the ditribution of the pieces for the new chessboard
-    */
-    void makeBoard(const string state);
     /** Saves the current state of the chessboard into a file.
     * @param filename the name of the file where the game should be saved
     * @return true if the game was successfully saved, false otherwise
@@ -34,10 +30,6 @@ class Board {
     * @return the content of the file from which the game was loaded
     */
     string load (string filename);
-    /** Saves the current state of the chessboard to a string. Used when saving to a file.
-    * @return a string in which the current state of the chessboard is encoded
-    */
-    string saveToString (bool changeColor) const;
    /** Promotes a pawn after traversing the board.
     * @param toy file letter of the destination square
     * @param tox rank number of the destination square
@@ -50,12 +42,22 @@ public:
     bool getIsCheck() { return isCheck; }
     bool getIsMate() { return isMate; }
     string getColorName();
+    int evaluate();
     char getColor() const { return color; }
+    /** Creates a new chessboard. Used for loading from a file.
+    * @param state Contains the ditribution of the pieces for the new chessboard
+    */
+    void makeBoard(const string state);
+    /** Saves the current state of the chessboard to a string. Used when saving to a file.
+    * @return a string in which the current state of the chessboard is encoded
+    */
+    string saveToString (bool changeColor) const;
     /**Displays information about check and ends the game when a stalemate or a checkmate occurs.
     * @param isLocal true if the game is being played locally, false otherwise
     * @return true if the game has ended, flase otherwise
     */
-    bool endTurn(const bool isLocal);
+    bool endGame(const bool isLocal);
+    vector< pair<char, int> > getMoves(const char playerColor);
     void setColor(char newColor){ color = newColor; }
     /**When playing over the network, sends data about the players actions to the opponent.
     * @param state the current state of the game
