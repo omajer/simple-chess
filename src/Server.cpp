@@ -13,47 +13,10 @@ using namespace std;
 
 static const string DEFAULT_PORT = "8093", DEFAULT_ADDRESS = "localhost";
 
-int prepareCliSocket(const char * listenAddr, const char * port){
+int prepareSocket(const char * listenAddr, const char * port, bool isServer){
 
     struct addrinfo hints, *serv_info;
-    int opt=1, cli_fd;
-
-    memset(&hints, 0, sizeof hints);
-    hints.ai_family = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
-
-    if(getaddrinfo(listenAddr, port, &hints, &serv_info) != 0){
-        cout<<"error\n";
-        return -1;
-    }
-
-    cli_fd = socket(serv_info->ai_family, serv_info->ai_socktype, 0);
-    if(cli_fd == -1){
-        cout<<"error\n";
-        freeaddrinfo(serv_info);
-        return -1;
-    }
-
-    if(setsockopt(cli_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof opt) != 0){
-        cout<<"error\n";
-        freeaddrinfo(serv_info);
-        return -1;
-    }
-
-    if(connect(cli_fd, serv_info->ai_addr, serv_info->ai_addrlen) != 0){
-        cout<<"error\n";
-        freeaddrinfo(serv_info);
-        return -1;
-    }
-
-    freeaddrinfo(serv_info);
-    return cli_fd;
-}
-
-int prepareSrvSocket(const char * listenAddr, const char * port){
-
-    struct addrinfo hints, *serv_info;
-    int opt=1, server_fd;
+    int opt=1, fd;
 
     memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_UNSPEC;
@@ -63,29 +26,38 @@ int prepareSrvSocket(const char * listenAddr, const char * port){
         return -1;
     }
 
-    server_fd = socket(serv_info->ai_family, serv_info->ai_socktype, 0);
-    if(server_fd == -1){
+    fd = socket(serv_info->ai_family, serv_info->ai_socktype, 0);
+    if(fd == -1){
         freeaddrinfo(serv_info);
         return -1;
     }
 
-    if(setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof opt) != 0){
+    if(setsockopt(fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof opt) != 0){
         freeaddrinfo(serv_info);
         return -1;
     }
 
-    if(bind(server_fd,serv_info->ai_addr, serv_info->ai_addrlen) != 0){
+    if(isServer){
+        if(bind(fd,serv_info->ai_addr, serv_info->ai_addrlen) != 0){
+            freeaddrinfo(serv_info);
+            return -1;
+        }
         freeaddrinfo(serv_info);
-        return -1;
+        if(listen(fd, 10) != 0){
+            freeaddrinfo(serv_info);
+            return -1;
+        }
+    } else {
+        if(connect(fd, serv_info->ai_addr, serv_info->ai_addrlen) != 0){
+            cout<<"error\n";
+            freeaddrinfo(serv_info);
+            return -1;
+        }
+        freeaddrinfo(serv_info);
     }
 
-    freeaddrinfo(serv_info);
 
-    if(listen(server_fd, 10) != 0){
-        freeaddrinfo(serv_info);
-        return -1;
-    }
-    return server_fd;
+    return fd;
 }
 
 int establishConn(int& cliSock, int& listenServSock, int& connectionServSock, bool& isSrv, bool& isCli){
@@ -113,7 +85,7 @@ int establishConn(int& cliSock, int& listenServSock, int& connectionServSock, bo
     }
     if(tmpChar == 'c'){
         isCli = true;
-        cliSock = prepareCliSocket(&address[0], &port[0]);
+        cliSock = prepareSocket(&address[0], &port[0], false);
         if (cliSock == -1){
             return 1;
         }
@@ -122,7 +94,7 @@ int establishConn(int& cliSock, int& listenServSock, int& connectionServSock, bo
         isSrv = true;
         struct sockaddr_storage their_addr;
         socklen_t addr_size = sizeof their_addr;
-        listenServSock = prepareSrvSocket(&address[0], &port[0]);
+        listenServSock = prepareSocket(&address[0], &port[0], true);
         if (listenServSock == -1){
             return 1;
         }
